@@ -71,7 +71,7 @@ const Cocktail = () => {
           <p>
             <span className="drink-data">Info:</span>
             {info}
-          </p>
+          </p>``
           <p>
             <span className="drink-data">glass:</span>
             {glass}
