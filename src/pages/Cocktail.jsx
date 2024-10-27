@@ -1,23 +1,40 @@
 import { Link, Navigate, useLoaderData } from "react-router-dom";
 import Wrapper from "../assets/wrappers/CocktailPage";
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 
 const url = "https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i=";
 
-export const loader = async ({ params }) => {
-  const { id } = params;
-
-  const { data } = await axios.get(`${url}${id}`);
-
-  return { id, data };
+const singleCocktailQuery = (id) => {
+  return {
+    queryKey: ["cocktail", id],
+    queryFn: async () => {
+      const { data } = await axios.get(`${url}${id}`);
+      return data;
+    }
+  };
 };
 
+export const loader =
+  (queryClient) =>
+  async ({ params }) => {
+    const { id } = params;
+
+    await queryClient.ensureQueryData(singleCocktailQuery(id));
+
+    // const { data } = await axios.get(`${url}${id}`);
+
+    return { id };
+  };
+
 const Cocktail = () => {
-  const { id, data } = useLoaderData();
+  const { id } = useLoaderData();
 
-//   if(!data) return <h2>something went wrong....</h2>
-  if(!data) return <Navigate to="/"/>
+  //   if(!data) return <h2>something went wrong....</h2>
 
+  const { data } = useQuery(singleCocktailQuery(id));
+
+  if (!data) return <Navigate to="/" />;
 
   const singleDrink = data.drinks[0];
 
@@ -38,14 +55,13 @@ const Cocktail = () => {
     )
     .map((key) => singleDrink[key]);
 
-
   const {
     strDrink: name,
     strDrinkThumb: image,
     strAlcoholic: info,
     strCategory: category,
     strGlass: glass,
-    strInstructions: instructions,
+    strInstructions: instructions
   } = singleDrink;
 
   return (
@@ -71,12 +87,12 @@ const Cocktail = () => {
           <p>
             <span className="drink-data">Info:</span>
             {info}
-          </p>``
+          </p>
+          ``
           <p>
             <span className="drink-data">glass:</span>
             {glass}
           </p>
-
           <p>
             <span className="drink-data">Ingredients:</span>
             {valudIngredients.map((item, index) => {
@@ -88,7 +104,6 @@ const Cocktail = () => {
               );
             })}
           </p>
-
           <p>
             <span className="drink-data">instructions:</span>
             {instructions}
